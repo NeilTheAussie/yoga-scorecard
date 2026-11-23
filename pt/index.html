@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PT Client Scorecard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;800&family=Red+Hat+Text:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: confident personal trainer's scorecard, Priestley-style
+   IDEA: a client scorecard, five dials that fill as you answer
+   PICTURE: five area bars and a big score ring on results
+   COLOUR and TYPE: navy #0f1d2b ground, YBK green #7cc242 accent; Red Hat Display/Text
+   LAYOUT: one calm column card, progress bar on top, results stacked */
+:root{color-scheme:light dark;--bg:light-dark(#f4f6f2,#0b141e);--card:light-dark(#ffffff,#13202d);--ink:light-dark(#0f1d2b,#e8eef3);--mute:light-dark(#5b6876,#9aa9b7);--line:light-dark(#e1e6ea,#25384a);--g:#7cc242;--gd:light-dark(#2f6b12,#a6dc78);--navy:#0f1d2b;--amb:#f2a33a;--red:#e2574c}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 'Red Hat Text',system-ui,sans-serif;overflow-x:clip}
+.top{background:var(--navy);color:#fff;padding:18px max(5vw,16px)}
+.top b{font-family:'Red Hat Display';font-weight:800;letter-spacing:.2px}.top span{color:var(--g)}
+.prog{height:6px;background:#22364a}.prog i{display:block;height:100%;width:0;background:var(--g);transition:width .3s}
+main{max-width:720px;margin:0 auto;padding:clamp(20px,4vw,48px) max(4vw,14px) 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:clamp(20px,4vw,36px);box-shadow:0 10px 30px -18px rgba(15,29,43,.35)}
+h1,h2{font-family:'Red Hat Display';font-weight:800;line-height:1.08;text-wrap:balance;margin:0 0 12px}
+h1{font-size:clamp(30px,5vw,44px)}h2{font-size:clamp(22px,3.6vw,30px)}
+h3{font-family:'Red Hat Display';font-size:19px;margin:22px 0 8px}
+p{margin:0 0 12px}.mute{color:var(--mute)}.small{font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.chips span{background:light-dark(#eef6e6,#1d3324);color:var(--gd);font-weight:700;font-size:14px;padding:6px 12px;border-radius:99px}
+.area-tag{display:inline-block;font-size:13px;font-weight:700;color:var(--gd);margin-bottom:8px}
+.q{font-family:'Red Hat Display';font-weight:600;font-size:clamp(20px,3.2vw,26px);line-height:1.25;margin:0 0 20px}
+.opts{display:grid;gap:10px}.opts.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opt{min-height:52px;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:12px;font:600 16px 'Red Hat Text';padding:10px 14px;text-align:left;cursor:pointer}
+.opts.three .opt{text-align:center}
+.opt:hover{border-color:var(--g)}.opt[aria-pressed=true]{border-color:var(--g);background:light-dark(#eef6e6,#1d3324)}
+.opt:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--g);outline-offset:2px}
+label.f{display:block;font-weight:700;font-size:14px;margin:14px 0 6px}
+input,textarea{width:100%;font:16px 'Red Hat Text';padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:transparent;color:var(--ink)}
+textarea{min-height:96px}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px}.check input{width:22px;height:22px;flex:none;margin-top:2px}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px}
+.btn{min-height:48px;border:0;border-radius:12px;padding:12px 22px;font:700 16px 'Red Hat Text';cursor:pointer;background:var(--g);color:#0f1d2b}
+.btn.ghost{background:transparent;color:var(--mute);border:2px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:default}
+.err{color:var(--red);font-size:14px;min-height:20px;margin-top:8px}
+.hero{display:grid;grid-template-columns:150px minmax(0,1fr);gap:22px;align-items:center;margin-bottom:10px}
+.ring{width:150px;height:150px}
+.bars{display:grid;gap:12px;margin:18px 0}
+.bar .lab{display:flex;justify-content:space-between;font-weight:700;font-size:15px}
+.bar .tr{height:12px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:4px}.bar .tr i{display:block;height:100%;border-radius:99px;transition:width .8s}
+.rec{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:start}
+.rec .n{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.rec .pr{font-weight:800;white-space:nowrap}
+.rec input{width:22px;height:22px;margin:0}
+.price{background:var(--navy);color:#fff;border-radius:14px;padding:20px;margin:18px 0}
+.price .big{font-family:'Red Hat Display';font-size:clamp(32px,6vw,44px);font-weight:800;color:var(--g);line-height:1}
+.price .row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #22364a;font-size:15px}
+.price .row b{white-space:nowrap}
+.pill{display:inline-block;background:var(--amb);color:#0f1d2b;font-weight:800;font-size:12px;border-radius:6px;padding:2px 8px}
+.note{font-size:13px;color:var(--mute);margin-top:10px}
+@media(max-width:600px){.opts.three{grid-template-columns:1fr}.hero{grid-template-columns:1fr;justify-items:center;text-align:center}.rec{grid-template-columns:34px minmax(0,1fr)}.rec .pr{grid-column:2}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top"><b>PT Client <span>Engine</span></b></div>
+<div class="prog"><i id="pg"></i></div>
+<main><div id="app"></div></main>
+
+<script>
+{
+/* ===== EDIT PRICES HERE (£ a month) ===== */
+/* Build your own: every option has its own price; the more they pick, the bigger the discount */
+const PRICING={tiers:[{min:1,off:0},{min:3,off:.10},{min:5,off:.15},{min:8,off:.20}],everything:399,pro:99,bookUrl:""};
+/* Business types: options 5 and 8 and their 4 questions change per type */
+const SEGMENTS={
+ gym:{label:"Self-employed PT in a gym",goal:"a booked consultation",
+  o5:{name:"Sales training",why:"A proven consultation script for selling your PT packages, plus automated feedback on your calls and gym-floor chats.",q:["I follow a clear structure when someone asks about training with me.","At least 1 in 3 people I have a consultation with sign up."]},
+  o8:{name:"Client progress report",why:"A branded assessment and progress report from each consultation and check-in, sent the same day.",q:["After a consultation, people get something personal showing what I found and their plan.","People who don't sign up on the day hear from me again with something useful."]}},
+ employed:{label:"Employed PT at a gym or leisure centre",goal:"a booked consultation",
+  o5:{name:"Sales training",why:"A proven consultation script for turning members into PT clients, plus automated feedback on your calls.",q:["I follow a clear structure when a member asks about PT.","At least 1 in 3 members I have a consultation with sign up."]},
+  o8:{name:"Client progress report",why:"A branded assessment and progress report from each consultation and check-in, sent the same day.",q:["After a consultation, people get something personal showing what I found and their plan.","Members who don't sign up hear from me again with something useful."]}},
+ studio:{label:"I own a PT studio or private gym",goal:"a booked intro session",
+  o5:{name:"Intro offer to membership",why:"Intro-offer clients get a welcome, check-ins and a package or membership offer timed before their intro ends.",q:["Most people on my intro offer go on to buy a package or membership.","Intro-offer clients hear from us between sessions, not just when they're in."]},
+  o8:{name:"Client retention and win-back",why:"Spots clients who've stopped booking and brings them back before they cancel, plus win-back offers for lapsed clients.",q:["I know which clients haven't booked for 2 weeks or more.","Lapsed clients get a personal message inviting them back."]}},
+ online:{label:"Online coaching",goal:"a booked call or sign-up",
+  o5:{name:"Free challenge and launch funnel",why:"A free 5 or 7-day challenge that builds trust and turns into paid coaching sign-ups.",q:["I run a free challenge, trial or masterclass that turns into paid clients.","I promote or launch my coaching on a regular schedule."]},
+  o8:{name:"Client churn saver",why:"Spots clients who've stopped checking in or logging workouts, nudges them back and offers a pause before they cancel.",q:["I know which online clients have stopped checking in.","Clients thinking of cancelling are offered a pause or a better-fit option."]}},
+ group:{label:"Small group training or bootcamps",goal:"a booked first session",
+  o5:{name:"Session filler",why:"New-member offer, booking reminders and last-minute messages that fill empty spots in your sessions.",q:["My group sessions are usually full or close to it.","When a session has spaces, I can fill them quickly with one message."]},
+  o8:{name:"Group to 1:1 upgrades",why:"Turns regular group members into 1:1, semi-private and programme clients with well-timed offers.",q:["My group members know about my 1:1 and premium options.","I regularly offer members the next step beyond group sessions."]}}
+};
+const DISC={"Weight loss and body composition":"fitness","Strength and muscle":"strength","Sport and performance":"performance","Over 50s and healthy ageing":"fitness","Injury, pain and rehab":"rehab","General fitness":"fitness"};
+const BASE=[
+ {n:1,name:"Automated Instagram replies",price:49,area:"capture",why:"Every comment and DM gets an instant reply with your quiz or consultation link."},
+ {n:2,name:"Custom scored quiz",price:39,area:"capture",why:"A fitness scorecard for your clients that captures details and tells you each person's goal and main blocker before you speak."},
+ {n:3,name:"Claude set-up and help",price:29,area:"control",why:"Your own Claude, loaded with your coaching voice, packages and client results, writing posts, replies, check-ins and emails for you."},
+ {n:4,name:"Facebook and Instagram ads",price:79,area:"attention",why:"Lead ads judged on cost per new paying client, with a weekly automated report."},
+ {n:5,price:49,area:"conversion"},
+ {n:6,name:"WhatsApp and text AI setter",price:79,area:"conversation",why:"Every new enquiry gets a reply in your voice and is taken through to {G}, even while you're mid-session."},
+ {n:7,name:"Follow-ups and reminders",price:49,area:"conversation",why:"Chasers for people who go quiet, booking reminders, no-show rebooking and a sequence for people who didn't buy."},
+ {n:8,price:39,area:"conversion"},
+ {n:9,name:"Content engine",price:49,area:"attention",why:"12–20 short training clip scripts with hooks and captions every month, plus client-story reels, so you just film between sessions."},
+ {n:10,name:"Leads dashboard and Monday numbers",price:29,area:"control",why:"Every enquiry in one place, plus a Monday report of enquiries, consultations and new paying clients."},
+ {n:11,name:"Website",price:49,area:"capture",why:"A fast, mobile-friendly website for your PT business, built to turn visitors into {G}, with hosting and updates included."}
+];
+const BASEQ=[
+ {o:9,q:"I post short training or client videos at least 3 times a week."},
+ {o:9,q:"I always know what to post next, without staring at a blank screen."},
+ {o:4,q:"I run paid ads that bring new people enquiring every week."},
+ {o:4,q:"I know what each enquiry and each new paying client costs me."},
+ {o:2,q:"I have a quiz, scorecard or free assessment that collects people's contact details."},
+ {o:2,q:"Before I speak to someone, I already know their goal and what's stopped them before."},
+ {o:1,q:"Every Instagram comment and DM gets a reply within an hour."},
+ {o:1,q:"My posts ask people to comment a keyword or message me, and every one is followed up."},
+ {o:6,q:"New enquiries hear from me within 5 minutes, even when I'm with a client."},
+ {o:6,q:"I have set messages that take people from enquiry to {G}."},
+ {o:7,q:"People who don't reply are followed up automatically."},
+ {o:7,q:"Bookings get automatic reminders, and no-shows are rebooked."},
+ {o:5},{o:5},{o:8},{o:8},
+ {o:3,q:"I use AI every week to write posts, emails or replies that sound like me."},
+ {o:3,q:"My packages, prices and client results (before and afters, testimonials) are written down in one place."},
+ {o:10,q:"All my enquiries are in one place, and I can see where each person is."},
+ {o:10,q:"Every week I know how many enquiries, consultations and new paying clients I've had."},
+ {o:11,q:"I have a website that clearly shows who I help and how to book."},
+ {o:11,q:"My website turns visitors into enquiries or bookings, not just page views."}
+];
+const AREAS=[
+ {k:"attention",label:"Attention",d:"Getting seen by the right people"},
+ {k:"capture",label:"Capture",d:"Turning interest into contact details"},
+ {k:"conversation",label:"Conversation",d:"Moving enquiries to a booking"},
+ {k:"conversion",label:"Conversion",d:"Turning people into paying, long-term clients"},
+ {k:"control",label:"Control",d:"Systems, AI and knowing your numbers"}
+];
+let OPTIONS=[],QUESTIONS=[];
+function build(){
+ const sg=SEGMENTS[S.seg]||SEGMENTS.gym,D=DISC[S.disc]||"fitness",f=t=>t.replace(/\{D\}/g,D).replace(/\{G\}/g,sg.goal);
+ OPTIONS=BASE.map(o=>{const x=o.n===5?sg.o5:o.n===8?sg.o8:o;return{...o,name:x.name,why:f(x.why)}});
+ let c5=0,c8=0;
+ QUESTIONS=BASEQ.map(x=>{const q=x.o===5?sg.o5.q[c5++]:x.o===8?sg.o8.q[c8++]:f(x.q);return{o:x.o,q,a:OPTIONS.find(o=>o.n===x.o).area}});
+}
+const ANS=[{l:"Yes",v:2},{l:"Sometimes",v:1},{l:"No",v:0}];
+const BG=[
+ {k:"stage",q:"Where are you at with your PT business right now?",opts:["Just starting out","Part-time, alongside another job","Full-time PT","I run a studio or a team"]},
+ {k:"clients",q:"How many new paying clients do you get in a typical month?",opts:["0–2","3–9","10–24","25 or more"]},
+ {k:"goal",multi:true,q:"What would make the biggest difference in the next 90 days?",opts:["More enquiries","More bookings","More enquiries turning into paying clients","Less time on messages and admin, more time training clients"]},
+ {k:"block",multi:true,q:"What gets in the way right now?",opts:["Not enough time","The tech","Not knowing what to post","Selling feels awkward","Money for ads"]},
+ {k:"cpa",q:"How much would you be happy to spend to get one new paying client?",hint:"Think about what a new client is worth to you over the months they stay.",opts:["Under £25","£25–£50","£50–£100","More than £100","Not sure yet"]},
+ {k:"speed",q:"How important is it that enquiries get a reply instantly, day and night?",opts:["Essential","Nice to have","Not important"]},
+ {k:"notes",q:"Anything else you'd like us to know?",text:true}
+];
+const BOOST={goal:{"More enquiries":[4,9,1,11],"More bookings":[6,7,2],"More enquiries turning into paying clients":[5,8],"Less time on messages and admin, more time training clients":[3,10,6]},
+ block:{"Not enough time":[6,7],"The tech":[3,11],"Not knowing what to post":[9],"Selling feels awkward":[5],"Money for ads":[]}};
+
+const S={step:0,c:{},ans:[],bg:{},sel:null,seg:null,disc:null,gym:""};
+const steps=["intro","seg","disc","gym",...BASEQ.map((_,i)=>"q"+i),...BG.map((_,i)=>"b"+i),"results"];
+const app=document.getElementById("app"),pg=document.getElementById("pg");
+const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const go=d=>{S.step=Math.max(0,Math.min(steps.length-1,S.step+d));render();window.scrollTo({top:0})};
+const nav=(ok,label="Next")=>`<div class="nav"><button class="btn ghost" id="bk" type="button">Back</button><button class="btn" id="nx" type="button" ${ok?"":"disabled"}>${label}</button></div>`;
+const wire=()=>{const b=document.getElementById("bk");if(b)b.onclick=()=>go(-1);const n=document.getElementById("nx");if(n&&!n.onclick)n.onclick=()=>go(1)};
+
+function render(){
+ const id=steps[S.step];pg.style.width=(S.step/(steps.length-1)*100)+"%";
+ if(id==="intro")return intro();
+ if(id==="contact")return contact();
+ if(id==="seg")return pick("seg","What best describes your business?",Object.entries(SEGMENTS).map(([k,v])=>[k,v.label]),"If you do several, pick the one you most want to grow.");
+ if(id==="disc")return pick("disc","What do you mainly help clients with?",Object.keys(DISC).map(k=>[k,k]));
+ if(id==="gym")return gymStep();
+ build();
+ if(id[0]==="q")return question(+id.slice(1));
+ if(id[0]==="b")return bg(+id.slice(1));
+ results();
+}
+function intro(){
+ app.innerHTML=`<div class="card"><h1>Is your PT diary filling up on autopilot?</h1>
+ <p>For gym-based PTs, studio owners, online coaches and group trainers. Answer 22 quick questions, tailored to how you work, and find out exactly where clients are slipping through, across the five areas every fully booked PT gets right.</p>
+ <div class="chips">${AREAS.map(a=>`<span>${a.label}</span>`).join("")}</div>
+ <p class="mute small">Takes about 3 minutes. You'll get your score, a breakdown of each area, and the options that would make the biggest difference to you, with prices.</p>
+ <div class="nav"><span></span><button class="btn" id="nx" type="button">Start the scorecard</button></div></div>`;wire();
+}
+function contact(){
+ const c=S.c;
+ app.innerHTML=`<div class="card"><h2>Where should we send your results?</h2>
+ <label class="f" for="cn">First name</label><input id="cn" autocomplete="given-name" value="${esc(c.name)}">
+ <label class="f" for="ce">Email</label><input id="ce" type="email" autocomplete="email" value="${esc(c.email)}">
+ <label class="f" for="cp">Mobile</label><input id="cp" type="tel" autocomplete="tel" value="${esc(c.phone)}">
+ <label class="f" for="cb">Your business name</label><input id="cb" placeholder="e.g. Flow Studio Norwich" value="${esc(c.biz)}">
+ <label class="check"><input type="checkbox" id="cc" ${c.consent?"checked":""}><span>I'm happy to be contacted by email, WhatsApp and text about my results and the PT Client Engine. I can opt out at any time.</span></label>
+ <div class="err" id="er"></div>${nav(true,"Start the questions")}</div>`;
+ wire();
+ document.getElementById("nx").onclick=()=>{
+  const v=k=>document.getElementById(k).value.trim();
+  Object.assign(S.c,{name:v("cn"),email:v("ce"),phone:v("cp"),biz:v("cb"),consent:document.getElementById("cc").checked});
+  const e=document.getElementById("er");
+  if(!S.c.name)return e.textContent="Add your first name.";
+  if(!/^\S+@\S+\.\S+$/.test(S.c.email))return e.textContent="Check your email address.";
+  if(S.c.phone.replace(/\D/g,"").length<10)return e.textContent="Add your mobile number.";
+  if(!S.c.consent)return e.textContent="Tick the box so we can send your results.";
+  go(1);
+ };
+}
+function gymStep(){
+ app.innerHTML=`<div class="card"><span class="area-tag">About your business</span><p class="q">Which gym do you train clients at?</p><p class="mute small">Gym name and town, e.g. PureGym Norwich Riverside.</p><input id="gy" placeholder="Gym name and town" value="${esc(S.gym&&S.gym!=="none"?S.gym:"")}"><div class="opts" style="margin-top:10px"><button class="opt" type="button" id="nogym" aria-pressed="${S.gym==="none"}">I don't work from a gym</button></div>${nav(!!S.gym)}</div>`;
+ wire();
+ const g=document.getElementById("gy"),nx=document.getElementById("nx");
+ g.oninput=()=>{S.gym=g.value.trim();nx.disabled=!S.gym};
+ document.getElementById("nogym").onclick=()=>{S.gym="none";render();setTimeout(()=>go(1),180)};
+}
+function pick(key,q,opts,hint){
+ const cur=S[key];
+ app.innerHTML=`<div class="card"><span class="area-tag">About your business</span><p class="q">${q}</p>${hint?`<p class="mute small">${hint}</p>`:""}<div class="opts">${opts.map(([v,l])=>`<button class="opt" type="button" data-v="${esc(v)}" aria-pressed="${cur===v}">${esc(l)}</button>`).join("")}</div>${nav(!!cur)}</div>`;
+ wire();
+ app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{if(S[key]!==b.dataset.v){S[key]=b.dataset.v;S.sel=null}render();setTimeout(()=>go(1),180)});
+}
+function question(i){
+ const Q=QUESTIONS[i],ar=AREAS.find(a=>a.k===Q.a),cur=S.ans[i];
+ app.innerHTML=`<div class="card"><span class="area-tag">${ar.label} · Question ${i+1} of ${QUESTIONS.length}</span>
+ <p class="q">${Q.q}</p><div class="opts three">${ANS.map(o=>`<button class="opt" type="button" data-v="${o.v}" aria-pressed="${cur===o.v}">${o.l}</button>`).join("")}</div>
+ ${nav(cur!==undefined)}</div>`;
+ wire();
+ app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{S.ans[i]=+b.dataset.v;render();setTimeout(()=>go(1),180)});
+}
+function bg(i){
+ const B=BG[i],cur=S.bg[B.k];
+ let body;
+ if(B.multi){const arr=cur||[];body=`<p class="mute small">Pick all that apply.</p><div class="opts">${B.opts.map(o=>`<button class="opt" type="button" data-v="${esc(o)}" aria-pressed="${arr.includes(o)}">${esc(o)}</button>`).join("")}</div>`}
+ else if(B.text)body=`<textarea id="bt" placeholder="Optional">${esc(cur)}</textarea>`;
+ else body=`<div class="opts">${B.opts.map(o=>`<button class="opt" type="button" data-v="${esc(o)}" aria-pressed="${cur===o}">${esc(o)}</button>`).join("")}</div>`;
+ const last=i===BG.length-1;
+ app.innerHTML=`<div class="card"><span class="area-tag">About you · ${i+1} of ${BG.length}</span><p class="q">${B.q}</p>${B.hint?`<p class="mute small">${B.hint}</p>`:""}${body}${nav(B.text||(B.multi?(cur||[]).length>0:cur!==undefined),last?"See my results":"Next")}</div>`;
+ wire();
+ if(B.text){const t=document.getElementById("bt");t.oninput=()=>S.bg[B.k]=t.value}
+ app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+  const v=b.dataset.v;
+  if(B.multi){const a=S.bg[B.k]||[];S.bg[B.k]=a.includes(v)?a.filter(x=>x!==v):[...a,v];render()}
+  else{S.bg[B.k]=v;render();setTimeout(()=>go(1),180)}
+ });
+}
+function compute(){
+ const area={},need={};
+ AREAS.forEach(a=>area[a.k]={s:0,m:0});
+ OPTIONS.forEach(o=>need[o.n]=0);
+ QUESTIONS.forEach((Q,i)=>{const v=S.ans[i]??0;area[Q.a].s+=v;area[Q.a].m+=2;need[Q.o]+=2-v});
+ const arr=k=>S.bg[k]||[];
+ arr("goal").forEach(g=>(BOOST.goal[g]||[]).forEach(n=>need[n]+=1.5));
+ arr("block").forEach(g=>(BOOST.block[g]||[]).forEach(n=>need[n]+=1));
+ if(arr("block").includes("Money for ads"))need[4]-=2;
+ ({"Just starting out":[2,1,9,11],"Part-time, alongside another job":[6,7],"I run a studio or a team":[5,8]}[S.bg.stage]||[]).forEach(n=>need[n]+=1);
+ if(S.bg.cpa==="Under £25")need[4]-=2;
+ if(S.bg.cpa==="£50–£100"||S.bg.cpa==="More than £100")need[4]+=1;
+ const total=Object.values(area).reduce((t,a)=>t+a.s,0),max=QUESTIONS.length*2;
+ const ranked=OPTIONS.map(o=>({...o,need:need[o.n]})).sort((a,b)=>b.need-a.need||a.price-b.price);
+ return{area,pct:Math.round(total/max*100),ranked};
+}
+function priceFor(sel){
+ const items=OPTIONS.filter(o=>sel.has(o.n)),sum=items.reduce((t,o)=>t+o.price,0),c=items.length;
+ if(c===OPTIONS.length)return{sum,best:PRICING.everything,label:"Everything",c,next:null};
+ const tier=PRICING.tiers.filter(t=>c>=t.min).pop();
+ let best=Math.round(sum*(1-tier.off)),label=tier.off?`${Math.round(tier.off*100)}% off for ${tier.min}+ options`:"Pay per option";
+ if(best>PRICING.everything){best=PRICING.everything;label="Everything (cheaper than your picks)"}
+ const nt=PRICING.tiers.find(t=>t.min>c);
+ const next=nt?`Add ${nt.min-c} more option${nt.min-c===1?"":"s"} to get ${Math.round(nt.off*100)}% off everything you pick.`:`Add the last ${OPTIONS.length-c} for Everything at £${PRICING.everything}.`;
+ return{sum,best,label,c,next};
+}
+function results(){
+ const r=compute();
+ const small=S.bg.stage==="Just starting out"||S.bg.stage==="Part-time, alongside another job",topN=small?3:5;
+ if(!S.sel)S.sel=new Set(r.ranked.slice(0,topN).map(o=>o.n));
+ const tier=r.pct<40?["Leaky bucket","People want what you offer, but most are slipping through before they ever book or pay."]:r.pct<70?["Getting there","The foundations are there. A few gaps are costing you clients every week."]:["Ready to scale","Your system works. Automating the last gaps frees you to train more clients and grow."];
+ const col=p=>p<40?"var(--red)":p<70?"var(--amb)":"var(--g)";
+ const weakest=AREAS.map(a=>({...a,p:Math.round(r.area[a.k].s/r.area[a.k].m*100)})).sort((a,b)=>a.p-b.p);
+ const fast=S.bg.speed==="Essential";
+ const C=2*Math.PI*62,off=C*(1-r.pct/100);
+ app.innerHTML=`<div class="card">
+ <div class="hero"><svg class="ring" viewBox="0 0 150 150" role="img" aria-label="Score ${r.pct}%"><circle cx="75" cy="75" r="62" fill="none" stroke="var(--line)" stroke-width="14"/><circle cx="75" cy="75" r="62" fill="none" stroke="${col(r.pct)}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 75 75)"/><text x="75" y="84" text-anchor="middle" font-family="Red Hat Display" font-weight="800" font-size="34" fill="currentColor">${r.pct}%</text></svg>
+ <div><p class="mute small">Your Client Engine Score</p><h2>${tier[0]}</h2><p>${tier[1]}</p></div></div>
+ <h3>Your five areas</h3>
+ <div class="bars">${weakest.slice().sort((a,b)=>AREAS.indexOf(AREAS.find(x=>x.k===a.k))-AREAS.indexOf(AREAS.find(x=>x.k===b.k))).map(a=>`<div class="bar"><div class="lab"><span>${a.label} <span class="mute small">· ${a.d}</span></span><span>${a.p}%</span></div><div class="tr"><i style="width:${a.p}%;background:${col(a.p)}"></i></div></div>`).join("")}</div>
+ <p><b>Your biggest opportunity is ${weakest[0].label}.</b> ${weakest[0].d} is where the most clients are being lost right now.</p>
+ <h3>What would make the biggest difference</h3>
+ <p class="mute small">Ranked for you. Your top ${topN} are ticked. Pick as many or as few as you like: the more you pick, the bigger the discount.</p>${small?`<p><b>Start small.</b> As you're ${S.bg.stage==="Just starting out"?"just starting out":"working part-time"}, begin with these ${topN} and add more as your diary fills. You can add options any month.</p>`:""}
+ <div id="recs">${r.ranked.map((o,i)=>`<label class="rec"><span class="n">${i+1}</span><span><b>${o.name}</b><br><span class="small mute">${o.why}</span></span><span class="pr"><input type="checkbox" data-n="${o.n}" ${S.sel.has(o.n)?"checked":""}> £${o.price}/mo</span></label>`).join("")}</div>
+ <div class="price" id="pbox"></div>
+ <h3>How your replies run</h3>
+ <p>${fast?`<span class="pill">Recommended: Pro</span> You said instant replies are essential. Pro runs everything on GoHighLevel in the cloud, so enquiries get answered within minutes, day and night, without your computer on. +£${PRICING.pro} a month, included with Everything.`:`<b>Standard</b> runs your replies through Claude in Chrome on a schedule while your computer is on. Upgrade to <b>Pro</b> (+£${PRICING.pro} a month, included with Everything) any time for instant replies, day and night.`}</p>
+ <p class="mute small">Every package includes 3 live troubleshooting sessions a week.</p>
+ <div class="nav"><button class="btn ghost" id="bk" type="button">Back</button><button class="btn" id="cp" type="button">Copy my results</button></div>
+ ${PRICING.bookUrl?`<p style="margin-top:14px"><a class="btn" href="${esc(PRICING.bookUrl)}" style="display:inline-block;text-decoration:none">Book a call to get started</a></p>`:""}
+ <p class="note" id="cpm"></p></div>`;
+ wire();
+ const upd=()=>{const p=priceFor(S.sel);document.getElementById("pbox").innerHTML=
+  `<div class="row"><span>${p.c} option${p.c===1?"":"s"} chosen</span><b>£${p.sum} a month separately</b></div>
+   <div class="row"><span>${p.label}</span><b>${p.best<p.sum?"−£"+(p.sum-p.best):""}</b></div>
+   <div style="margin-top:12px"><span class="big">£${p.best}</span> a month${p.best<p.sum?` <span class="pill">Save £${p.sum-p.best}</span>`:""}</div>
+   ${p.next&&p.c?`<p class="note" style="color:#c9d6e0">${p.next}</p>`:""}
+   ${fast&&p.c<OPTIONS.length?`<p class="note" style="color:#c9d6e0">+ £${PRICING.pro} a month for Pro</p>`:""}
+   <p class="note" style="color:#c9d6e0">Pick any 1–2: full price · 3–4: 10% off · 5–7: 15% off · 8–10: 20% off · all ${OPTIONS.length}: £${PRICING.everything}</p>`};
+ upd();
+ app.querySelectorAll("#recs input").forEach(c=>c.onchange=()=>{const n=+c.dataset.n;c.checked?S.sel.add(n):S.sel.delete(n);upd()});
+ document.getElementById("cp").onclick=async()=>{
+  const p=priceFor(S.sel);
+  const txt=[`Client Engine Score: ${r.pct}% (${tier[0]})`,`Business: ${SEGMENTS[S.seg].label} | ${S.disc} | Gym: ${S.gym==="none"?"No gym":S.gym}`,
+   ...AREAS.map(a=>`${a.label}: ${Math.round(r.area[a.k].s/r.area[a.k].m*100)}%`),
+   ...BG.filter(b=>S.bg[b.k]&&String(S.bg[b.k])).map(b=>`${b.q} ${[].concat(S.bg[b.k]).join(", ")}`),
+   `Chosen: ${OPTIONS.filter(o=>S.sel.has(o.n)).map(o=>o.name).join(", ")}`,`Price: £${p.best} a month (${p.label})${fast?" + Pro":""}`].join("\n");
+  const m=document.getElementById("cpm");
+  try{await navigator.clipboard.writeText(txt);m.textContent="Copied. Paste it into a message to send it over."}catch(e){m.textContent="Couldn't copy here. Take a screenshot instead."}
+ };
+}
+render();
+}
+</script>
+</body>
+</html>
