@@ -150,15 +150,22 @@ function profile(i){
  });
 }
 function where(){
- app.innerHTML=`<div class="card"><span class="tag">Your area</span><p class="q">What's your postcode?</p><p class="mute small">So we match you with coaches near you. The first half is fine, e.g. NR7.</p>
- <input id="pc" autocomplete="postal-code" placeholder="e.g. NR7" value="${esc(S.c.pc)}" style="text-transform:uppercase">
- <label class="f" for="gy">Do you belong to a gym? (optional)</label><input id="gy" placeholder="e.g. PureGym Norwich Riverside, or none" value="${esc(S.c.gym)}">
+ const g=S.c.gymYes;
+ app.innerHTML=`<div class="card"><span class="tag">Your area</span><p class="q">What's your postcode?</p><p class="mute small">So we match you with coaches near you, e.g. NR7 0AB.</p>
+ <input id="pc" autocomplete="postal-code" placeholder="e.g. NR7 0AB" value="${esc(S.c.pc)}" style="text-transform:uppercase">
+ <p class="q" style="margin-top:24px">Do you currently go to a gym?</p>
+ <div class="opts"><button class="opt" type="button" data-g="yes" aria-pressed="${g==="yes"}">Yes</button><button class="opt" type="button" data-g="no" aria-pressed="${g==="no"}">No</button></div>
+ ${g==="yes"?`<label class="f" for="gy">Which gym?</label><input id="gy" placeholder="e.g. PureGym Norwich Riverside" value="${esc(S.c.gym)}">`:""}
  <div class="err" id="er"></div>${nav(true)}</div>`;
  wire();
+ const keep=()=>{S.c.pc=document.getElementById("pc").value.trim().toUpperCase();const gy=document.getElementById("gy");if(gy)S.c.gym=gy.value.trim()};
+ app.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{keep();S.c.gymYes=b.dataset.g;if(S.c.gymYes==="no")S.c.gym="None";else if(S.c.gym==="None")S.c.gym="";where();const gy=document.getElementById("gy");if(gy)gy.focus()});
  document.getElementById("nx").onclick=()=>{
-  const pc=document.getElementById("pc").value.trim().toUpperCase();S.c.gym=document.getElementById("gy").value.trim();
-  if(!/^[A-Z]{1,2}[0-9][0-9A-Z]?( ?[0-9][A-Z]{2})?$/.test(pc))return document.getElementById("er").textContent="Check your postcode, e.g. NR7 or NR7 0AB.";
-  S.c.pc=pc;go(1);
+  keep();const er=document.getElementById("er");
+  if(!/^[A-Z]{1,2}[0-9][0-9A-Z]? ?[0-9][A-Z]{2}$/.test(S.c.pc))return er.textContent="Add your full postcode, e.g. NR7 0AB.";
+  if(!S.c.gymYes)return er.textContent="Tell us if you currently go to a gym.";
+  if(S.c.gymYes==="yes"&&!S.c.gym)return er.textContent="Add the name of your gym.";
+  go(1);
  };
 }
 function contact(){
