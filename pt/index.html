@@ -50,7 +50,7 @@ textarea{min-height:96px}
 .rec{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:start}
 .rec .n{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
 .rec .pr{font-weight:800;white-space:nowrap}
-.rec input{width:22px;height:22px;margin:0}
+.rec input{width:22px;height:22px;margin:0;accent-color:var(--g)}
 .price{background:var(--navy);color:#fff;border-radius:14px;padding:20px;margin:18px 0}
 .price .big{font-family:'Red Hat Display';font-size:clamp(32px,6vw,44px);font-weight:800;color:var(--g);line-height:1}
 .price .row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #22364a;font-size:15px}
@@ -70,7 +70,8 @@ textarea{min-height:96px}
 {
 /* ===== EDIT PRICES HERE (£ a month) ===== */
 /* Build your own: every option has its own price; the more they pick, the bigger the discount */
-const PRICING={tiers:[{min:1,off:0},{min:3,off:.10},{min:5,off:.15},{min:8,off:.20}],everything:399,pro:99,bookUrl:""};
+const PRICING={tiers:[{min:1,off:0},{min:3,off:.10},{min:5,off:.15},{min:8,off:.20}],everything:399,pro:99,bookUrl:"",
+ leads:{payg:149,fee:"£15–£30",flat:499,places:6}};
 /* Business types: options 5 and 8 and their 4 questions change per type */
 const SEGMENTS={
  gym:{label:"Self-employed PT in a gym",goal:"a booked consultation",
@@ -145,22 +146,30 @@ const BG=[
  {k:"goal",multi:true,q:"What would make the biggest difference in the next 90 days?",opts:["More enquiries","More bookings","More enquiries turning into paying clients","Less time on messages and admin, more time training clients"]},
  {k:"block",multi:true,q:"What gets in the way right now?",opts:["Not enough time","The tech","Not knowing what to post","Selling feels awkward","Money for ads"]},
  {k:"cpa",q:"How much would you be happy to spend to get one new paying client?",hint:"Think about what a new client is worth to you over the months they stay.",opts:["Under £25","£25–£50","£50–£100","More than £100","Not sure yet"]},
- {k:"speed",q:"How important is it that enquiries get a reply instantly, day and night?",opts:["Essential","Nice to have","Not important"]},
- {k:"notes",q:"Anything else you'd like us to know?",text:true}
+ {k:"speed",q:"How important is it that enquiries get a reply instantly, day and night?",opts:["Essential","Nice to have","Not important"]}
+];
+/* Local clients (Men's Fitness MOT leads) */
+const NO_LEADS="No, just the package";
+const LQ=[
+ {k:"want",q:"Would you like us to send you local clients as well?",hint:"Men aged 35–60 near you take our Men's Fitness MOT. Up to 3 local PTs get their details, and he chooses who to train with.",opts:["Yes, send me clients","Maybe, tell me more",NO_LEADS]},
+ {k:"area",q:"Which town or postcode area would you take clients in?",hint:"e.g. Norwich, NR7 or Ipswich.",text:true,req:true},
+ {k:"cap",q:"How many new clients could you take on each month?",opts:["1–3","4–7","8–15","16 or more"]},
+ {k:"call",q:"How quickly could you call a new enquiry?",hint:"Up to 3 PTs contact each man. The first good call usually wins him.",opts:["Within the hour","Same day","Next day or later"]},
+ {k:"pay",q:"How would you rather pay for clients?",opts:[`Only when someone signs with me`,`One flat monthly fee, as many clients as I want`,"Not sure, recommend one"]}
 ];
 const BOOST={goal:{"More enquiries":[4,9,1,11],"More bookings":[6,7,2],"More enquiries turning into paying clients":[5,8],"Less time on messages and admin, more time training clients":[3,10,6]},
  block:{"Not enough time":[6,7],"The tech":[3,11],"Not knowing what to post":[9],"Selling feels awkward":[5],"Money for ads":[]}};
 
-const S={step:0,c:{},ans:[],bg:{},sel:null,seg:null,disc:null,gym:""};
-const steps=["intro","seg","disc","gym",...BASEQ.map((_,i)=>"q"+i),...BG.map((_,i)=>"b"+i),"results"];
+const S={step:0,c:{},ans:[],bg:{},ld:{},notes:"",lp:null,sel:null,seg:null,disc:null,gym:""};
+const ST=()=>["intro","seg","disc","gym",...BASEQ.map((_,i)=>"q"+i),...BG.map((_,i)=>"b"+i),"l0",...(S.ld.want===NO_LEADS?[]:LQ.slice(1).map((_,i)=>"l"+(i+1))),"notes","results"];
 const app=document.getElementById("app"),pg=document.getElementById("pg");
 const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
-const go=d=>{S.step=Math.max(0,Math.min(steps.length-1,S.step+d));render();window.scrollTo({top:0})};
+const go=d=>{S.step=Math.max(0,Math.min(ST().length-1,S.step+d));render();window.scrollTo({top:0})};
 const nav=(ok,label="Next")=>`<div class="nav"><button class="btn ghost" id="bk" type="button">Back</button><button class="btn" id="nx" type="button" ${ok?"":"disabled"}>${label}</button></div>`;
 const wire=()=>{const b=document.getElementById("bk");if(b)b.onclick=()=>go(-1);const n=document.getElementById("nx");if(n&&!n.onclick)n.onclick=()=>go(1)};
 
 function render(){
- const id=steps[S.step];pg.style.width=(S.step/(steps.length-1)*100)+"%";
+ const steps=ST(),id=steps[S.step];pg.style.width=(S.step/(steps.length-1)*100)+"%";
  if(id==="intro")return intro();
  if(id==="contact")return contact();
  if(id==="seg")return pick("seg","What best describes your business?",Object.entries(SEGMENTS).map(([k,v])=>[k,v.label]),"If you do several, pick the one you most want to grow.");
@@ -169,13 +178,17 @@ function render(){
  build();
  if(id[0]==="q")return question(+id.slice(1));
  if(id[0]==="b")return bg(+id.slice(1));
+ if(id[0]==="l")return leadQ(+id.slice(1));
+ if(id==="notes")return notesStep();
  results();
 }
 function intro(){
  app.innerHTML=`<div class="card"><h1>Is your PT diary filling up on autopilot?</h1>
- <p>For gym-based PTs, studio owners, online coaches and group trainers. Answer 22 quick questions, tailored to how you work, and find out exactly where clients are slipping through, across the five areas every fully booked PT gets right.</p>
- <div class="chips">${AREAS.map(a=>`<span>${a.label}</span>`).join("")}</div>
- <p class="mute small">Takes about 3 minutes. You'll get your score, a breakdown of each area, and the options that would make the biggest difference to you, with prices.</p>
+ <p>For gym-based PTs, studio owners, online coaches and group trainers. We help in two ways:</p>
+ <p><b>1. Your Client Engine.</b> We set up your Instagram auto-replies, Claude, quiz, follow-ups, content and ads, so enquiries get handled without you.<br><b>2. Local clients.</b> We send you men aged 35–60 near you who want a PT.</p>
+ <p>Answer a few quick questions, tailored to how you work, and find out where clients are slipping through and which of the two would help you most.</p>
+ <div class="chips">${AREAS.map(a=>`<span>${a.label}</span>`).join("")}<span>Local clients</span></div>
+ <p class="mute small">Takes about 4 minutes. You'll get your score, a breakdown of each area, and what we'd recommend for you, with prices.</p>
  <div class="nav"><span></span><button class="btn" id="nx" type="button">Start the scorecard</button></div></div>`;wire();
 }
 function contact(){
@@ -226,7 +239,7 @@ function bg(i){
  if(B.multi){const arr=cur||[];body=`<p class="mute small">Pick all that apply.</p><div class="opts">${B.opts.map(o=>`<button class="opt" type="button" data-v="${esc(o)}" aria-pressed="${arr.includes(o)}">${esc(o)}</button>`).join("")}</div>`}
  else if(B.text)body=`<textarea id="bt" placeholder="Optional">${esc(cur)}</textarea>`;
  else body=`<div class="opts">${B.opts.map(o=>`<button class="opt" type="button" data-v="${esc(o)}" aria-pressed="${cur===o}">${esc(o)}</button>`).join("")}</div>`;
- const last=i===BG.length-1;
+ const last=false;
  app.innerHTML=`<div class="card"><span class="area-tag">About you · ${i+1} of ${BG.length}</span><p class="q">${B.q}</p>${B.hint?`<p class="mute small">${B.hint}</p>`:""}${body}${nav(B.text||(B.multi?(cur||[]).length>0:cur!==undefined),last?"See my results":"Next")}</div>`;
  wire();
  if(B.text){const t=document.getElementById("bt");t.oninput=()=>S.bg[B.k]=t.value}
@@ -235,6 +248,28 @@ function bg(i){
   if(B.multi){const a=S.bg[B.k]||[];S.bg[B.k]=a.includes(v)?a.filter(x=>x!==v):[...a,v];render()}
   else{S.bg[B.k]=v;render();setTimeout(()=>go(1),180)}
  });
+}
+function leadQ(i){
+ const B=LQ[i],cur=S.ld[B.k];
+ const body=B.text?`<input id="lt" placeholder="Town or postcode" value="${esc(cur)}">`:`<div class="opts">${B.opts.map(o=>`<button class="opt" type="button" data-v="${esc(o)}" aria-pressed="${cur===o}">${esc(o)}</button>`).join("")}</div>`;
+ const n=S.ld.want===NO_LEADS?1:LQ.length;
+ app.innerHTML=`<div class="card"><span class="area-tag">Local clients · ${i+1} of ${n}</span><p class="q">${B.q}</p>${B.hint?`<p class="mute small">${B.hint}</p>`:""}${body}${nav(!!cur)}</div>`;
+ wire();
+ if(B.text){const t=document.getElementById("lt"),nx=document.getElementById("nx");t.oninput=()=>{S.ld[B.k]=t.value.trim();nx.disabled=!S.ld[B.k]}}
+ app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{S.ld[B.k]=b.dataset.v;S.lp=null;render();setTimeout(()=>go(1),180)});
+}
+function notesStep(){
+ app.innerHTML=`<div class="card"><span class="area-tag">Last one</span><p class="q">Anything else you'd like us to know?</p><textarea id="bt" placeholder="Optional">${esc(S.notes)}</textarea>${nav(true,"See my results")}</div>`;
+ wire();const t=document.getElementById("bt");t.oninput=()=>S.notes=t.value;
+}
+function leadRec(){
+ const L=PRICING.leads,d=S.ld;
+ if(d.want===NO_LEADS)return{plan:"none",why:""};
+ if(d.pay==="Only when someone signs with me")return{plan:"payg",why:"You'd rather only pay when someone signs with you."};
+ if(d.pay==="One flat monthly fee, as many clients as I want")return{plan:"flat",why:"You'd rather pay one flat fee and take as many clients as you can."};
+ if(d.cap==="16 or more")return{plan:"flat",why:`You could take 16+ new clients a month. At ${L.fee} each, the flat £${L.flat} works out cheaper.`};
+ if(d.cap==="8–15")return{plan:"payg",why:`Start risk-free. If you're signing more than about 12 a month, the flat £${L.flat} becomes cheaper and you can switch.`};
+ return{plan:"payg",why:"Start risk-free: you only pay when a client signs with you."};
 }
 function compute(){
  const area={},need={};
@@ -262,6 +297,19 @@ function priceFor(sel){
  const next=nt?`Add ${nt.min-c} more option${nt.min-c===1?"":"s"} to get ${Math.round(nt.off*100)}% off everything you pick.`:`Add the last ${OPTIONS.length-c} for Everything at £${PRICING.everything}.`;
  return{sum,best,label,c,next};
 }
+function leadsBlock(){
+ const L=PRICING.leads,rec=leadRec(),d=S.ld;
+ if(!S.lp)S.lp=rec.plan;
+ const slow=d.call==="Next day or later";
+ const opt=(k,title,price,txt)=>`<label class="rec"><span class="n">${k==="none"?"–":k==="payg"?"A":"B"}</span><span><b>${title}</b>${rec.plan===k&&k!=="none"?` <span class="pill">Recommended</span>`:""}<br><span class="small mute">${txt}</span></span><span class="pr"><input type="radio" name="lp" value="${k}" ${S.lp===k?"checked":""}> ${price}</span></label>`;
+ return `<h3>Local clients</h3>
+ <p>Men aged 35–60 near ${d.area?esc(d.area):"you"} take our Men's Fitness MOT. Up to 3 local PTs get each one, and he picks who to train with. ${rec.why}</p>
+ <div id="lps">${opt("payg","Pay per client",`£${L.payg}/mo`,`£${L.payg} a month, plus ${L.fee} for each client who signs with you. No sign-ups, no fee.`)}
+ ${opt("flat","All the clients you want",`£${L.flat}/mo`,`£${L.flat} a month flat. As many clients as you can take (fair use), no fee per client. Only ${L.places} places per town.`)}
+ ${opt("none","No local clients for now","£0","Just the Client Engine package.")}</div>
+ ${slow?`<p class="small"><b>Tip:</b> up to 3 PTs contact each man, so calling within the hour wins far more clients. Your Client Engine can send an instant text the moment he's matched with you.</p>`:""}
+ <p class="mute small">We're opening town by town. If we're not live near you yet, you'll be first in line.</p>`;
+}
 function results(){
  const r=compute();
  const small=S.bg.stage==="Just starting out"||S.bg.stage==="Part-time, alongside another job",topN=small?3:5;
@@ -284,25 +332,37 @@ function results(){
  <h3>How your replies run</h3>
  <p>${fast?`<span class="pill">Recommended: Pro</span> You said instant replies are essential. Pro runs everything on GoHighLevel in the cloud, so enquiries get answered within minutes, day and night, without your computer on. +£${PRICING.pro} a month, included with Everything.`:`<b>Standard</b> runs your replies through Claude in Chrome on a schedule while your computer is on. Upgrade to <b>Pro</b> (+£${PRICING.pro} a month, included with Everything) any time for instant replies, day and night.`}</p>
  <p class="mute small">Every package includes 3 live troubleshooting sessions a week.</p>
+ ${leadsBlock()}
+ <div class="price" id="tbox"></div>
  <div class="nav"><button class="btn ghost" id="bk" type="button">Back</button><button class="btn" id="cp" type="button">Copy my results</button></div>
  ${PRICING.bookUrl?`<p style="margin-top:14px"><a class="btn" href="${esc(PRICING.bookUrl)}" style="display:inline-block;text-decoration:none">Book a call to get started</a></p>`:""}
  <p class="note" id="cpm"></p></div>`;
  wire();
- const upd=()=>{const p=priceFor(S.sel);document.getElementById("pbox").innerHTML=
+ let upd=()=>{const p=priceFor(S.sel);document.getElementById("pbox").innerHTML=
   `<div class="row"><span>${p.c} option${p.c===1?"":"s"} chosen</span><b>£${p.sum} a month separately</b></div>
    <div class="row"><span>${p.label}</span><b>${p.best<p.sum?"−£"+(p.sum-p.best):""}</b></div>
    <div style="margin-top:12px"><span class="big">£${p.best}</span> a month${p.best<p.sum?` <span class="pill">Save £${p.sum-p.best}</span>`:""}</div>
    ${p.next&&p.c?`<p class="note" style="color:#c9d6e0">${p.next}</p>`:""}
    ${fast&&p.c<OPTIONS.length?`<p class="note" style="color:#c9d6e0">+ £${PRICING.pro} a month for Pro</p>`:""}
    <p class="note" style="color:#c9d6e0">Pick any 1–2: full price · 3–4: 10% off · 5–7: 15% off · 8–10: 20% off · all ${OPTIONS.length}: £${PRICING.everything}</p>`};
+ const L=PRICING.leads,tot=()=>{const p=priceFor(S.sel),pro=fast&&p.c<OPTIONS.length?PRICING.pro:0,pk=p.c?p.best+pro:0,ld=S.lp==="payg"?L.payg:S.lp==="flat"?L.flat:0;
+  document.getElementById("tbox").innerHTML=`<div class="row"><span>Client Engine package${pro?" + Pro":""}</span><b>£${pk} a month</b></div>
+   <div class="row"><span>Local clients${S.lp==="payg"?" (pay per client)":S.lp==="flat"?" (all you want)":""}</span><b>£${ld} a month</b></div>
+   <div style="margin-top:12px"><span class="big">£${pk+ld}</span> a month in total</div>
+   ${S.lp==="payg"?`<p class="note" style="color:#c9d6e0">Plus ${L.fee} for each client who signs with you.</p>`:""}`};
+ const upd0=upd;upd=()=>{upd0();tot()};
  upd();
+ app.querySelectorAll("#lps input").forEach(c=>c.onchange=()=>{S.lp=c.value;tot()});
  app.querySelectorAll("#recs input").forEach(c=>c.onchange=()=>{const n=+c.dataset.n;c.checked?S.sel.add(n):S.sel.delete(n);upd()});
  document.getElementById("cp").onclick=async()=>{
   const p=priceFor(S.sel);
   const txt=[`Client Engine Score: ${r.pct}% (${tier[0]})`,`Business: ${SEGMENTS[S.seg].label} | ${S.disc} | Gym: ${S.gym==="none"?"No gym":S.gym}`,
    ...AREAS.map(a=>`${a.label}: ${Math.round(r.area[a.k].s/r.area[a.k].m*100)}%`),
    ...BG.filter(b=>S.bg[b.k]&&String(S.bg[b.k])).map(b=>`${b.q} ${[].concat(S.bg[b.k]).join(", ")}`),
-   `Chosen: ${OPTIONS.filter(o=>S.sel.has(o.n)).map(o=>o.name).join(", ")}`,`Price: £${p.best} a month (${p.label})${fast?" + Pro":""}`].join("\n");
+   ...LQ.filter(b=>S.ld[b.k]).map(b=>`${b.q} ${S.ld[b.k]}`),
+   `Chosen: ${OPTIONS.filter(o=>S.sel.has(o.n)).map(o=>o.name).join(", ")||"None"}`,`Package: £${p.c?p.best:0} a month (${p.label})${fast?" + Pro":""}`,
+   `Local clients: ${S.lp==="payg"?`£${PRICING.leads.payg} a month + ${PRICING.leads.fee} per client signed`:S.lp==="flat"?`£${PRICING.leads.flat} a month, all clients`:"None"}`,
+   ...(S.notes?[`Notes: ${S.notes}`]:[])].join("\n");
   const m=document.getElementById("cpm");
   try{await navigator.clipboard.writeText(txt);m.textContent="Copied. Paste it into a message to send it over."}catch(e){m.textContent="Couldn't copy here. Take a screenshot instead."}
  };
