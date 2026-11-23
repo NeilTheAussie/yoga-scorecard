@@ -140,6 +140,7 @@ function build(){
 }
 const ANS=[{l:"Yes",v:2},{l:"Sometimes",v:1},{l:"No",v:0}];
 const BG=[
+ {k:"stage",q:"Where are you at with your teaching right now?",opts:["Just starting out","Part-time, alongside another job","Full-time teacher","I run a studio or a team"]},
  {k:"clients",q:"How many new paying students or clients do you get in a typical month?",opts:["0–2","3–9","10–24","25 or more"]},
  {k:"goal",multi:true,q:"What would make the biggest difference in the next 90 days?",opts:["More enquiries","More bookings","More enquiries turning into paying students","Less time on messages and admin, more time teaching"]},
  {k:"block",multi:true,q:"What gets in the way right now?",opts:["Not enough time","The tech","Not knowing what to post","Selling feels awkward","Money for ads"]},
@@ -236,6 +237,7 @@ function compute(){
  arr("goal").forEach(g=>(BOOST.goal[g]||[]).forEach(n=>need[n]+=1.5));
  arr("block").forEach(g=>(BOOST.block[g]||[]).forEach(n=>need[n]+=1));
  if(arr("block").includes("Money for ads"))need[4]-=2;
+ ({"Just starting out":[2,1,9,11],"Part-time, alongside another job":[6,7],"I run a studio or a team":[5,8]}[S.bg.stage]||[]).forEach(n=>need[n]+=1);
  if(S.bg.cpa==="Under £25")need[4]-=2;
  if(S.bg.cpa==="£50–£100"||S.bg.cpa==="More than £100")need[4]+=1;
  const total=Object.values(area).reduce((t,a)=>t+a.s,0),max=QUESTIONS.length*2;
@@ -254,7 +256,8 @@ function priceFor(sel){
 }
 function results(){
  const r=compute();
- if(!S.sel)S.sel=new Set(r.ranked.slice(0,5).map(o=>o.n));
+ const small=S.bg.stage==="Just starting out"||S.bg.stage==="Part-time, alongside another job",topN=small?3:5;
+ if(!S.sel)S.sel=new Set(r.ranked.slice(0,topN).map(o=>o.n));
  const tier=r.pct<40?["Leaky bucket","People love what you teach, but most are slipping through before they ever book or pay."]:r.pct<70?["Getting there","The foundations are there. A few gaps are costing you students and clients every week."]:["Ready to scale","Your system works. Automating the last gaps frees you to teach more and grow."];
  const col=p=>p<40?"var(--red)":p<70?"var(--amb)":"var(--g)";
  const weakest=AREAS.map(a=>({...a,p:Math.round(r.area[a.k].s/r.area[a.k].m*100)})).sort((a,b)=>a.p-b.p);
@@ -267,7 +270,7 @@ function results(){
  <div class="bars">${weakest.slice().sort((a,b)=>AREAS.indexOf(AREAS.find(x=>x.k===a.k))-AREAS.indexOf(AREAS.find(x=>x.k===b.k))).map(a=>`<div class="bar"><div class="lab"><span>${a.label} <span class="mute small">· ${a.d}</span></span><span>${a.p}%</span></div><div class="tr"><i style="width:${a.p}%;background:${col(a.p)}"></i></div></div>`).join("")}</div>
  <p><b>Your biggest opportunity is ${weakest[0].label}.</b> ${weakest[0].d} is where the most students and clients are being lost right now.</p>
  <h3>What would make the biggest difference</h3>
- <p class="mute small">Ranked for you. Your top 5 are ticked. Pick as many or as few as you like: the more you pick, the bigger the discount.</p>
+ <p class="mute small">Ranked for you. Your top ${topN} are ticked. Pick as many or as few as you like: the more you pick, the bigger the discount.</p>${small?`<p><b>Start small.</b> As you're ${S.bg.stage==="Just starting out"?"just starting out":"teaching part-time"}, begin with these ${topN} and add more as your classes fill. You can add options any month.</p>`:""}
  <div id="recs">${r.ranked.map((o,i)=>`<label class="rec"><span class="n">${i+1}</span><span><b>${o.name}</b><br><span class="small mute">${o.why}</span></span><span class="pr"><input type="checkbox" data-n="${o.n}" ${S.sel.has(o.n)?"checked":""}> £${o.price}/mo</span></label>`).join("")}</div>
  <div class="price" id="pbox"></div>
  <h3>How your replies run</h3>
