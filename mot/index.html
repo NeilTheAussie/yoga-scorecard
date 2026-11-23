@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Men's Fitness MOT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: straight-talking, like a good mechanic for your body
+   IDEA: an MOT certificate for men 35–60: pass, advisories, fails
+   PICTURE: five gauges and a big overall score on the certificate
+   COLOUR and TYPE: charcoal #16191d, safety amber #f2a900, Archivo + Inter
+   LAYOUT: one column card, progress bar, certificate-style results */
+:root{color-scheme:light dark;--bg:light-dark(#f3f2ee,#0f1114);--card:light-dark(#fff,#1a1d22);--ink:light-dark(#16191d,#eceae4);--mute:light-dark(#5d6268,#a3a7ad);--line:light-dark(#e3e1da,#2c3036);--amb:#f2a900;--ambd:light-dark(#8a6100,#f2c14e);--char:#16191d;--ok:#3f9c35;--bad:#d9483b}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.top{background:var(--char);color:#fff;padding:16px max(5vw,16px);display:flex;justify-content:space-between;align-items:center}
+.top b{font-family:Archivo;font-weight:900;letter-spacing:.3px}.top b span{color:var(--amb)}
+.prog{height:6px;background:#2c3036}.prog i{display:block;height:100%;width:0;background:var(--amb);transition:width .3s}
+main{max-width:720px;margin:0 auto;padding:clamp(20px,4vw,48px) max(4vw,14px) 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:clamp(20px,4vw,36px);box-shadow:0 10px 30px -18px rgba(0,0,0,.35)}
+h1,h2{font-family:Archivo;font-weight:900;line-height:1.05;text-wrap:balance;margin:0 0 12px}
+h1{font-size:clamp(32px,5.5vw,48px)}h2{font-size:clamp(22px,3.6vw,30px)}
+h3{font-family:Archivo;font-size:19px;margin:22px 0 8px}
+p{margin:0 0 12px}.mute{color:var(--mute)}.small{font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.chips span{background:light-dark(#fdf3d6,#2e2814);color:var(--ambd);font-weight:700;font-size:14px;padding:6px 12px;border-radius:99px}
+.tag{display:inline-block;font-size:13px;font-weight:700;color:var(--ambd);margin-bottom:8px}
+.q{font-family:Archivo;font-weight:700;font-size:clamp(20px,3.2vw,26px);line-height:1.25;margin:0 0 18px}
+.opts{display:grid;gap:10px}.opts.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opt{min-height:52px;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;font:600 16px Inter;padding:10px 14px;text-align:left;cursor:pointer}
+.opts.three .opt{text-align:center}
+.opt:hover{border-color:var(--amb)}.opt[aria-pressed=true]{border-color:var(--amb);background:light-dark(#fdf3d6,#2e2814)}
+.opt:focus-visible,.btn:focus-visible,input:focus-visible{outline:3px solid var(--amb);outline-offset:2px}
+label.f{display:block;font-weight:700;font-size:14px;margin:14px 0 6px}
+input{width:100%;font:16px Inter;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:transparent;color:var(--ink)}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px}.check input{width:22px;height:22px;flex:none;margin-top:2px}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px}
+.btn{min-height:48px;border:0;border-radius:10px;padding:12px 22px;font:700 16px Inter;cursor:pointer;background:var(--amb);color:#16191d}
+.btn.ghost{background:transparent;color:var(--mute);border:2px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:default}
+.err{color:var(--bad);font-size:14px;min-height:20px;margin-top:8px}
+.cert{border:3px solid var(--char);border-radius:12px;overflow:hidden}
+:root[data-theme=dark] .cert{border-color:#3a3f46}
+.cert-head{background:var(--char);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:Archivo;font-weight:700}
+.cert-head span{color:var(--amb)}
+.cert-body{padding:18px}
+.score{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}.score b{font-family:Archivo;font-size:clamp(48px,9vw,64px);font-weight:900;line-height:1}
+.rows{display:grid;gap:12px;margin:16px 0}
+.row .lab{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:15px}
+.row .st{font-size:12px;font-weight:800;text-transform:uppercase;padding:2px 8px;border-radius:5px;white-space:nowrap}
+.pass{background:#e3f2df;color:#256b1d}.adv{background:#fdf0cc;color:#7a5600}.fail{background:#fbe1de;color:#9b2a20}
+.tr{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:5px}.tr i{display:block;height:100%;border-radius:99px;transition:width .8s}
+.box{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:12px 0}
+.warn{background:light-dark(#fbe1de,#3a1c19);border-color:transparent}
+.steps{counter-reset:s;list-style:none;margin:8px 0 0;padding:0}.steps li{counter-increment:s;padding-left:38px;position:relative;margin-bottom:10px}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--amb);color:#16191d;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+@media(max-width:600px){.opts.three{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top"><b>Men's Fitness <span>MOT</span></b><span class="small" style="color:#a3a7ad">For men 35–60</span></div>
+<div class="prog"><i id="pg"></i></div>
+<main><div id="app"></div></main>
+
+<script>
+{
+const AREAS=[
+ {k:"str",label:"Strength",pro:"a strength-focused personal trainer",fix:"Two short strength sessions a week, built around your joints, not a 25-year-old's programme."},
+ {k:"mob",label:"Mobility and back",pro:"a mobility coach or yoga-for-men teacher",fix:"Daily 10-minute mobility work for hips, back and shoulders, so you move without the aches."},
+ {k:"body",label:"Weight and energy",pro:"a personal trainer who specialises in fat loss",fix:"A simple eating plan you can stick to at work and at weekends, plus training that burns fat without wrecking your knees."},
+ {k:"hab",label:"Habits and consistency",pro:"a coach who checks in with you every week",fix:"Someone who keeps you accountable each week, because the plan isn't the problem, sticking to it is."},
+ {k:"rec",label:"Sleep, stress and recovery",pro:"a coach who covers recovery, breathing and stress",fix:"Better sleep and a way to switch off, so the training actually pays off."}
+];
+const QS=[
+ {a:"str",q:"I do some kind of strength training at least twice a week."},
+ {a:"str",q:"I can do 10 proper press-ups."},
+ {a:"str",q:"I can carry heavy shopping, bags or the kids without straining."},
+ {a:"mob",q:"I can get up off the floor without using my hands."},
+ {a:"mob",q:"My back, hips or knees rarely stop me doing what I want."},
+ {a:"mob",q:"I can touch my toes, or get close, without pain."},
+ {a:"body",q:"I'm happy with my weight and my waistline."},
+ {a:"body",q:"I have steady energy through the afternoon."},
+ {a:"body",q:"My trousers fit the same as they did two years ago."},
+ {a:"hab",q:"I've kept to an exercise routine for the last three months."},
+ {a:"hab",q:"I know exactly what to do when I walk into a gym."},
+ {a:"hab",q:"I eat well on most days of the week."},
+ {a:"rec",q:"I sleep at least 7 hours most nights."},
+ {a:"rec",q:"I feel on top of stress most weeks."},
+ {a:"rec",q:"I drink alcohol on 3 or fewer days a week."}
+];
+const ANS=[{l:"Yes",v:2},{l:"Sometimes",v:1},{l:"No",v:0}];
+const PROFILE=[
+ {k:"age",q:"How old are you?",opts:["35–39","40–44","45–49","50–54","55–60","Over 60"]},
+ {k:"goal",q:"What's the one thing you most want to change?",opts:["Lose weight, especially the belly","Get stronger","Move without aches and stiffness","More energy","Get fitter for a sport (golf, padel, running, football)","Look and feel better for an event"]},
+ {k:"tried",multi:true,q:"What have you tried before?",opts:["Gym on my own","Apps or YouTube","A personal trainer","Classes","Diets","Nothing yet"]},
+ {k:"how",q:"How would you like to be coached?",opts:["1:1 in person","Small group","Online, with check-ins","Not sure, help me decide"]},
+ {k:"yoga",q:"Would you be open to mobility or yoga-style work for your back and joints?",opts:["Yes","Maybe","No, just training"]},
+ {k:"budget",q:"What would you be comfortable investing each month to get this sorted?",opts:["Under £50","£50–£100","£100–£200","£200–£400","Over £400"]},
+ {k:"when",q:"When do you want to start?",opts:["As soon as possible","In the next month","Just looking for now"]},
+ {k:"times",multi:true,q:"When could you train?",opts:["Early mornings","Lunchtimes","Evenings","Weekends"]},
+ {k:"health",multi:true,q:"Do any of these apply to you?",hint:"So your coach starts you safely.",opts:["Heart condition or chest pain when active","Surgery in the last 6 months","Pain or numbness down an arm or leg","Dizziness or fainting","A doctor has told me to avoid exercise","None of these"]}
+];
+const S={step:0,ans:[],p:{},c:{}};
+const steps=["intro",...QS.map((_,i)=>"q"+i),...PROFILE.map((_,i)=>"p"+i),"where","contact","results"];
+const app=document.getElementById("app"),pg=document.getElementById("pg");
+const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const go=d=>{S.step=Math.max(0,Math.min(steps.length-1,S.step+d));render();window.scrollTo({top:0})};
+const nav=(ok,label="Next")=>`<div class="nav"><button class="btn ghost" id="bk" type="button">Back</button><button class="btn" id="nx" type="button" ${ok?"":"disabled"}>${label}</button></div>`;
+const wire=()=>{const b=document.getElementById("bk");if(b)b.onclick=()=>go(-1);const n=document.getElementById("nx");if(n&&!n.onclick)n.onclick=()=>go(1)};
+
+function render(){
+ const id=steps[S.step];pg.style.width=(S.step/(steps.length-1)*100)+"%";
+ if(id==="intro")return intro();
+ if(id[0]==="q")return question(+id.slice(1));
+ if(id[0]==="p")return profile(+id.slice(1));
+ if(id==="where")return where();
+ if(id==="contact")return contact();
+ results();
+}
+function intro(){
+ app.innerHTML=`<div class="card"><h1>When did your body last have an MOT?</h1>
+ <p>Most men between 35 and 60 service the car more often than themselves. Take the 3-minute Men's Fitness MOT: 15 quick checks across five areas, then a straight answer on what needs work and who's best placed to help.</p>
+ <div class="chips">${AREAS.map(a=>`<span>${a.label}</span>`).join("")}</div>
+ <p class="mute small">Free. You'll get your MOT result, your advisories, and up to 3 matched local coaches who'll get in touch. You choose who you train with, or no one at all.</p>
+ <div class="nav"><span></span><button class="btn" id="nx" type="button">Start my MOT</button></div></div>`;wire();
+}
+function question(i){
+ const Q=QS[i],ar=AREAS.find(a=>a.k===Q.a),cur=S.ans[i];
+ app.innerHTML=`<div class="card"><span class="tag">${ar.label} · Check ${i+1} of ${QS.length}</span><p class="q">${Q.q}</p>
+ <div class="opts three">${ANS.map(o=>`<button class="opt" type="button" data-v="${o.v}" aria-pressed="${cur===o.v}">${o.l}</button>`).join("")}</div>${nav(cur!==undefined)}</div>`;
+ wire();
+ app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{S.ans[i]=+b.dataset.v;render();setTimeout(()=>go(1),180)});
+}
+function profile(i){
+ const P=PROFILE[i],cur=S.p[P.k];
+ const on=o=>P.multi?(cur||[]).includes(o):cur===o;
+ app.innerHTML=`<div class="card"><span class="tag">About you · ${i+1} of ${PROFILE.length}</span><p class="q">${P.q}</p>${P.hint?`<p class="mute small">${P.hint}</p>`:""}${P.multi?`<p class="mute small">Pick all that apply.</p>`:""}
+ <div class="opts">${P.opts.map(o=>`<button class="opt" type="button" data-v="${esc(o)}" aria-pressed="${on(o)}">${esc(o)}</button>`).join("")}</div>${nav(P.multi?(cur||[]).length>0:cur!==undefined)}</div>`;
+ wire();
+ app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+  const v=b.dataset.v;
+  if(P.multi){let a=S.p[P.k]||[];
+   if(P.k==="health"&&v==="None of these")a=a.includes(v)?[]:[v];
+   else{a=a.filter(x=>x!=="None of these");a=a.includes(v)?a.filter(x=>x!==v):[...a,v]}
+   S.p[P.k]=a;render()}
+  else{S.p[P.k]=v;render();setTimeout(()=>go(1),180)}
+ });
+}
+function where(){
+ app.innerHTML=`<div class="card"><span class="tag">Your area</span><p class="q">What's your postcode?</p><p class="mute small">So we match you with coaches near you. The first half is fine, e.g. NR7.</p>
+ <input id="pc" autocomplete="postal-code" placeholder="e.g. NR7" value="${esc(S.c.pc)}" style="text-transform:uppercase">
+ <label class="f" for="gy">Do you belong to a gym? (optional)</label><input id="gy" placeholder="e.g. PureGym Norwich Riverside, or none" value="${esc(S.c.gym)}">
+ <div class="err" id="er"></div>${nav(true)}</div>`;
+ wire();
+ document.getElementById("nx").onclick=()=>{
+  const pc=document.getElementById("pc").value.trim().toUpperCase();S.c.gym=document.getElementById("gy").value.trim();
+  if(!/^[A-Z]{1,2}[0-9][0-9A-Z]?( ?[0-9][A-Z]{2})?$/.test(pc))return document.getElementById("er").textContent="Check your postcode, e.g. NR7 or NR7 0AB.";
+  S.c.pc=pc;go(1);
+ };
+}
+function contact(){
+ const c=S.c;
+ app.innerHTML=`<div class="card"><h2>Where should we send your MOT result?</h2>
+ <p class="mute small">Your result shows on the next screen. Up to 3 local coaches who fit your goal will then be in touch.</p>
+ <label class="f" for="cn">First name</label><input id="cn" autocomplete="given-name" value="${esc(c.name)}">
+ <label class="f" for="cp">Mobile</label><input id="cp" type="tel" autocomplete="tel" value="${esc(c.phone)}">
+ <label class="f" for="ce">Email</label><input id="ce" type="email" autocomplete="email" value="${esc(c.email)}">
+ <label class="check"><input type="checkbox" id="cc" ${c.consent?"checked":""}><span>I'm happy for up to 3 local fitness coaches to call, text or WhatsApp me about my MOT result. I choose whether to train with any of them, and I can opt out at any time.</span></label>
+ <div class="err" id="er"></div>${nav(true,"See my MOT result")}</div>`;
+ wire();
+ document.getElementById("nx").onclick=()=>{
+  const v=k=>document.getElementById(k).value.trim();
+  Object.assign(S.c,{name:v("cn"),phone:v("cp"),email:v("ce"),consent:document.getElementById("cc").checked});
+  const e=document.getElementById("er");
+  if(!S.c.name)return e.textContent="Add your first name.";
+  if(S.c.phone.replace(/\D/g,"").length<10)return e.textContent="Add your mobile number.";
+  if(!/^\S+@\S+\.\S+$/.test(S.c.email))return e.textContent="Check your email address.";
+  if(!S.c.consent)return e.textContent="Tick the box so coaches can get in touch with your result.";
+  go(1);
+ };
+}
+function results(){
+ const sc={};AREAS.forEach(a=>sc[a.k]={s:0,m:0});
+ QS.forEach((Q,i)=>{sc[Q.a].s+=S.ans[i]??0;sc[Q.a].m+=2});
+ const rows=AREAS.map(a=>({...a,p:Math.round(sc[a.k].s/sc[a.k].m*100)}));
+ const total=Math.round(rows.reduce((t,r)=>t+r.p,0)/rows.length);
+ const st=p=>p>=67?["Pass","pass","var(--ok)"]:p>=34?["Advisory","adv","var(--amb)"]:["Needs work","fail","var(--bad)"];
+ const worst=rows.slice().sort((a,b)=>a.p-b.p);
+ let main=worst[0];
+ const g=S.p.goal||"";
+ if(g.startsWith("Lose weight"))main=rows.find(r=>r.k==="body");
+ else if(g.startsWith("Move without"))main=rows.find(r=>r.k==="mob");
+ else if(g.startsWith("Get stronger"))main=rows.find(r=>r.k==="str");
+ const flags=(S.p.health||[]).filter(h=>h!=="None of these");
+ const how=S.p.how||"",budget=S.p.budget||"";
+ let format=how==="1:1 in person"?"1:1 sessions near you":how==="Small group"?"small group sessions near you":how==="Online, with check-ins"?"online coaching with weekly check-ins":"the format that fits your week";
+ if(budget==="Under £50"&&how==="1:1 in person")format="small group or online coaching, which fits your budget better than weekly 1:1s";
+ const yogaLine=S.p.yoga==="No, just training"?"":` and ${S.p.yoga==="Yes"?"mobility work for your back and joints":"some mobility work if your back or hips need it"}`;
+ const verdict=total>=67?"Pass, with advisories":total>=34?"Advisories to sort":"Needs work";
+ app.innerHTML=`<div class="card">
+ <div class="cert"><div class="cert-head"><span>MEN'S FITNESS MOT</span><span>${esc(S.c.name)} · ${esc(S.p.age||"")} · ${esc(S.c.pc)}</span></div>
+ <div class="cert-body">
+  <div class="score"><b>${total}</b><span class="mute">out of 100</span></div>
+  <h2>${verdict}</h2>
+  <div class="rows">${rows.map(r=>{const s=st(r.p);return `<div class="row"><div class="lab"><span>${r.label}</span><span class="st ${s[1]}">${s[0]}</span></div><div class="tr"><i style="width:${Math.max(r.p,4)}%;background:${s[2]}"></i></div></div>`}).join("")}</div>
+ </div></div>
+ ${flags.length?`<div class="box warn"><b>Before you start:</b> you ticked ${esc(flags.join(", ").toLowerCase())}. Please speak to your GP before starting a new exercise programme. Once you have the all-clear, your coach can build around it.</div>`:""}
+ <h3>Your main advisory: ${main.label}</h3>
+ <p>${main.fix}</p>
+ <p>The right person for you is <b>${main.pro}</b>, through ${format}${yogaLine}.</p>
+ ${worst[1].p<67&&worst[1].k!==main.k?`<p class="mute small">Also worth a look: ${worst[1].label.toLowerCase()}.</p>`:""}
+ <h3>What happens next</h3>
+ <ol class="steps">
+  <li>We match you with up to 3 coaches near ${esc(S.c.pc)} who work with men your age on ${esc((S.p.goal||"your goal").toLowerCase())}.</li>
+  <li>They'll call or message you${S.p.when==="Just looking for now"?" when you're ready":" within 24 hours"}, ${S.p.times&&S.p.times.length?`aiming for ${esc(S.p.times.join(", ").toLowerCase())}`:"at a time that suits you"}.</li>
+  <li>Have a free chat with each, then choose who you take a session with, or no one at all.</li>
+ </ol>
+ <p class="mute small" style="margin-top:14px">This MOT is a general guide, not a medical assessment.</p>
+ <div class="nav"><button class="btn ghost" id="bk" type="button">Back</button><span></span></div></div>`;
+ wire();
+}
+render();
+}
+</script>
+</body>
+</html>
